@@ -1,0 +1,1 @@
+# Paket-resi-detail
